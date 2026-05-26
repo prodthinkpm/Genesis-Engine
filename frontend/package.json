@@ -1,0 +1,26 @@
+{
+  "name": "genesis-engine-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "nuxt": "^3.12.0",
+    "@pinia/nuxt": "^0.5.1",
+    "pinia": "^2.1.7",
+    "@vueuse/nuxt": "^10.11.0",
+    "@vueuse/core": "^10.11.0",
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "typescript": "^5.4.5",
+    "vue-tsc": "^2.0.21"
+  }
+}
