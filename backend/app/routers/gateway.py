@@ -13,6 +13,7 @@ from app.core.constants import AgentStatus, ACTION_PERMISSION_MAP
 from app.database import AsyncSessionLocal
 from app.models.agent import Agent
 from app.models.agent_manifest import AgentManifest
+from app.models.world import World
 from app.core.security import verify_password
 from app.services import gateway_service
 from app.services.observation_service import build_observation
@@ -20,6 +21,7 @@ from app.services.permission_service import check_permission
 from app.services.projection_service import place_agent_in_world, move_agent
 from app.services.proxy_service import enter_proxy_mode, exit_proxy_mode, drain_proxy_queue
 from app.services.event_service import create_event, log_behavior
+from app.world.world_seeder import seed_world
 from app.world.action_queue import enqueue_action
 from app.schemas.ws_messages import WsEnvelope
 
@@ -30,6 +32,30 @@ router = APIRouter(tags=["gateway"])
 # Rate limit: max messages per second per agent
 _RATE_LIMIT_WINDOW = 1  # second
 _RATE_LIMIT_MAX = 10
+
+
+async def _ensure_agent_world(agent: Agent, db) -> Agent:
+    if agent.world_id:
+        await seed_world(agent.world_id, db, agent.owner_user_id)
+        if not agent.location_id:
+            return await place_agent_in_world(agent.id, agent.world_id, db)
+        return agent
+
+    result = await db.execute(
+        select(World).where(World.status == "active").order_by(World.created_at).limit(1)
+    )
+    world = result.scalar_one_or_none()
+    if not world:
+        world = World(
+            name="Aethermoor",
+            description="The default Genesis Engine civilization world.",
+        )
+        db.add(world)
+        await db.flush()
+        await db.refresh(world)
+
+    await seed_world(world.id, db, agent.owner_user_id)
+    return await place_agent_in_world(agent.id, world.id, db)
 
 
 @router.websocket("/ws/gateway")
@@ -74,6 +100,7 @@ async def ws_gateway(websocket: WebSocket):
                 return
 
             agent_id = matched_agent.id
+            matched_agent = await _ensure_agent_world(matched_agent, db)
 
             # Check if reconnecting (had proxy queue)
             backlog = await drain_proxy_queue(agent_id)

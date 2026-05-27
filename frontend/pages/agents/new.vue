@@ -266,9 +266,8 @@
               <div class="term-line"><span class="term-cmd">pip install genesis-connector</span></div>
               <div class="term-line">&nbsp;</div>
               <div class="term-line"><span class="term-dim"># 2. 配置环境变量</span></div>
-              <div class="term-line"><span class="term-cmd">export GENESIS_AGENT_ID="{{ createdAgent?.id }}"</span></div>
               <div class="term-line"><span class="term-cmd">export GENESIS_API_KEY="{{ apiKey }}"</span></div>
-              <div class="term-line"><span class="term-cmd">export GENESIS_WS_URL="ws://localhost:8000/ws/gateway"</span></div>
+              <div class="term-line"><span class="term-cmd">export GENESIS_HOST="ws://localhost:18080"</span></div>
               <div class="term-line">&nbsp;</div>
               <div class="term-line"><span class="term-dim"># 3. 运行示例 Agent</span></div>
               <div class="term-line"><span class="term-cmd">python -m genesis_connector.examples.simple_agent</span></div>
@@ -296,17 +295,8 @@
             <NuxtLink to="/dashboard" class="btn btn-primary-sm">前往控制台 →</NuxtLink>
           </div>
         </div>
-<pre class="text-xs text-green-400 overflow-x-auto">pip install genesis-connector
-
-export GENESIS_API_KEY="{{ apiKey }}"
-export GENESIS_HOST="ws://localhost:18080"
-python simple_agent.py</pre>
-      </div>
-      <div class="flex justify-between">
-        <button @click="step--" class="genesis-btn-secondary">← Back</button>
-        <NuxtLink to="/dashboard" class="genesis-btn-primary">Go to Dashboard</NuxtLink>
-      </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -328,7 +318,7 @@ const config = useRuntimeConfig()
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${config.public.apiBase}/worlds`)
+    const res = await fetch(`${config.public.apiBase}/api/v1/worlds`)
     if (res.ok) {
       const worlds = await res.json()
       if (worlds.length > 0) worldTick.value = worlds[0].current_tick || 0

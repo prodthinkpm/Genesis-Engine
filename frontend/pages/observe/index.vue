@@ -417,7 +417,7 @@ function formatTick(n: number): string {
 // Data loading
 async function loadWorld() {
   try {
-    const res = await fetch(`${apiBase}/worlds`)
+    const res = await fetch(`${apiBase}/api/v1/worlds`)
     if (!res.ok) return
     const data = await res.json()
     if (data.length > 0) {
@@ -431,7 +431,7 @@ async function loadWorld() {
 
 async function loadAgents(worldId: string) {
   try {
-    const res = await fetch(`${apiBase}/worlds/${worldId}/agents`)
+    const res = await fetch(`${apiBase}/api/v1/worlds/${worldId}/agents`)
     if (!res.ok) return
     worldAgents.value = await res.json()
   } catch {}
@@ -439,7 +439,7 @@ async function loadAgents(worldId: string) {
 
 async function loadEvents(worldId: string) {
   try {
-    const res = await fetch(`${apiBase}/events?world_id=${worldId}&limit=20`)
+    const res = await fetch(`${apiBase}/api/v1/events?world_id=${worldId}&limit=20`)
     if (!res.ok) return
     recentEvents.value = (await res.json()).items || []
   } catch {}
@@ -458,7 +458,7 @@ onMounted(async () => {
   pollInterval = setInterval(async () => {
     if (world.value?.id) {
       try {
-        const res = await fetch(`${apiBase}/worlds/${world.value.id}`)
+        const res = await fetch(`${apiBase}/api/v1/worlds/${world.value.id}`)
         if (res.ok) {
           const w = await res.json()
           world.value = w
