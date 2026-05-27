@@ -10,13 +10,11 @@ import os
 from genesis_connector import GenesisConnector, Observation, ActionIntent, ActionData
 
 API_KEY = os.getenv("GENESIS_API_KEY", "your-api-key-here")
-JWT_TOKEN = os.getenv("GENESIS_JWT", "your-jwt-here")
-HOST = os.getenv("GENESIS_HOST", "ws://localhost:8000")
+HOST = os.getenv("GENESIS_HOST", "ws://localhost:18080")
 
 connector = GenesisConnector(
     api_key=API_KEY,
     host=HOST,
-    jwt_token=JWT_TOKEN,
     manifest={
         "runtime": "python",
         "connector_version": "0.1",

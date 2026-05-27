@@ -5,7 +5,6 @@ Usage:
     connector = GenesisConnector(
         api_key="gak_...",
         host="ws://localhost:8000",
-        jwt_token="<user access token>",
     )
 
     @connector.on_observation
@@ -35,10 +34,9 @@ logger = logging.getLogger("genesis_connector")
 
 
 class GenesisConnector:
-    def __init__(self, api_key: str, host: str, jwt_token: str, manifest: dict | None = None):
+    def __init__(self, api_key: str, host: str, manifest: dict | None = None):
         self.api_key = api_key
         self.host = host
-        self.jwt_token = jwt_token
         self.manifest = manifest or {
             "runtime": "python",
             "connector_version": "0.1",
@@ -67,7 +65,7 @@ class GenesisConnector:
         return handler
 
     async def connect(self):
-        uri = f"{self.host}/ws/gateway?token={self.jwt_token}"
+        uri = f"{self.host}/ws/gateway"
         self._running = True
         reconnect_delay = 1
 

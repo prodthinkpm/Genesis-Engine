@@ -296,7 +296,15 @@
             <NuxtLink to="/dashboard" class="btn btn-primary-sm">前往控制台 →</NuxtLink>
           </div>
         </div>
+<pre class="text-xs text-green-400 overflow-x-auto">pip install genesis-connector
 
+export GENESIS_API_KEY="{{ apiKey }}"
+export GENESIS_HOST="ws://localhost:18080"
+python simple_agent.py</pre>
+      </div>
+      <div class="flex justify-between">
+        <button @click="step--" class="genesis-btn-secondary">← Back</button>
+        <NuxtLink to="/dashboard" class="genesis-btn-primary">Go to Dashboard</NuxtLink>
       </div>
     </div>
   </div>
