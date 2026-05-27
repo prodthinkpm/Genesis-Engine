@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: genesis_dev
       POSTGRES_DB: genesis_engine
     ports:
-      - "5432:5432"
+      - "25432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "26379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -34,14 +34,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "18080:8000"
     environment:
       DATABASE_URL: postgresql+asyncpg://genesis:genesis_dev@postgres:5432/genesis_engine
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: dev-secret-key-change-in-production
       JWT_ALGORITHM: HS256
       JWT_EXPIRE_MINUTES: 60
-      CORS_ORIGINS: '["http://localhost:3000"]'
+      CORS_ORIGINS: '["http://localhost:13030"]'
       WORLD_TICK_INTERVAL_SECONDS: 30
       LOG_LEVEL: INFO
     depends_on:
@@ -58,10 +58,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "13030:3000"
     environment:
-      NUXT_PUBLIC_API_BASE: http://localhost:8000
-      NUXT_PUBLIC_WS_BASE: ws://localhost:8000
+      NUXT_PUBLIC_API_BASE: http://localhost:18080
+      NUXT_PUBLIC_WS_BASE: ws://localhost:18080
     depends_on:
       - backend
     volumes:

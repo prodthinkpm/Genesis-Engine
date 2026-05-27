@@ -18,10 +18,6 @@ node_modules/
 dist/
 .env
 
-# Alembic
-backend/alembic/versions/*.py
-!backend/alembic/versions/.gitkeep
-
 # Docker
 *.log
 
