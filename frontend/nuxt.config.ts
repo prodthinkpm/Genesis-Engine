@@ -7,6 +7,17 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
   ],
 
+  app: {
+    head: {
+      link: [
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600&display=swap",
+        },
+      ],
+    },
+  },
+
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8000",
