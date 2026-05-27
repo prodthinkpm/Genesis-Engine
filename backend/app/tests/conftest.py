@@ -35,6 +35,62 @@ def make_mock_redis():
     return redis
 
 
+@pytest_asyncio.fixture
+async def mock_redis():
+    """
+    Standalone fixture that injects a fake Redis client via the module-level
+    ``_redis`` singleton in ``app.redis_client``.
+
+    Because many service modules do ``from app.redis_client import get_redis``
+    (binding the function at import time), patching the function reference
+    won't help — but ``get_redis()`` returns the module global ``_redis`` if it
+    is already set, so injecting into that global *does* work for every caller.
+
+    The fixture also supplies realistic LPUSH/LTRIM/LRANGE semantics so that
+    proxy-queue round-trip tests pass without a live Redis.
+    """
+    import app.redis_client as rc
+
+    # Simulate a realistic LPUSH/LTRIM/LRANGE so proxy queue tests work.
+    _store: dict[str, list] = {}
+
+    redis = make_mock_redis()
+
+    async def _lpush(key, *values):
+        _store.setdefault(key, [])
+        for v in values:
+            _store[key].insert(0, v)
+        return len(_store[key])
+
+    async def _ltrim(key, start, end):
+        if key in _store:
+            _store[key] = _store[key][start : end + 1]
+        return True
+
+    async def _lrange(key, start, end):
+        data = _store.get(key, [])
+        if end == -1:
+            return list(data[start:])
+        return list(data[start : end + 1])
+
+    async def _delete(*keys):
+        for k in keys:
+            _store.pop(k, None)
+        return len(keys)
+
+    redis.lpush = _lpush
+    redis.ltrim = _ltrim
+    redis.lrange = _lrange
+    redis.delete = _delete
+
+    # Inject mock as the already-initialised Redis singleton.
+    # get_redis() skips connection setup when _redis is not None.
+    original = rc._redis
+    rc._redis = redis
+    yield redis
+    rc._redis = original
+
+
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
     async with test_engine.begin() as conn:

@@ -195,8 +195,8 @@ async def _execute_npc_action(npc: Agent, action: dict, world: World, tick: int,
         try:
             target_id = uuid.UUID(action["target_location_id"])
             await move_agent(npc.id, target_id, db)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"NPC {npc.id} move to {action.get('target_location_id')} failed: {e}")
     elif action_name == "speech":
         await create_event(
             world_id=world.id,

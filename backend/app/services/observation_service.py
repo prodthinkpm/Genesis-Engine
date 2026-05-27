@@ -50,7 +50,13 @@ async def build_observation(agent: Agent, world_tick: int, db: AsyncSession) -> 
         )
         for ev in events_result.scalars():
             content = ev.payload.get("content") if ev.payload else None
-            source_name = str(ev.source_agent_id) if ev.source_agent_id else "System"
+            # Resolve source agent display_name for readability
+            if ev.source_agent_id:
+                src_result = await db.execute(select(Agent).where(Agent.id == ev.source_agent_id))
+                src_agent = src_result.scalar_one_or_none()
+                source_name = src_agent.display_name if src_agent else str(ev.source_agent_id)
+            else:
+                source_name = "System"
             recent_events.append(RecentEventInfo(
                 event_type=ev.event_type,
                 source=source_name,
