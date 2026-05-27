@@ -1,15 +1,14 @@
 """
 WebSocket Gateway — the heart of the Genesis Agent Protocol.
-Agents connect here via: ws://host/ws/gateway?token=<jwt>
+Agents connect here via: ws://host/ws/gateway
 """
 import json
 import logging
 import uuid
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 
-from app.core.security import decode_token
 from app.core.constants import AgentStatus, ACTION_PERMISSION_MAP
 from app.database import AsyncSessionLocal
 from app.models.agent import Agent
@@ -33,23 +32,8 @@ _RATE_LIMIT_WINDOW = 1  # second
 _RATE_LIMIT_MAX = 10
 
 
-async def _authenticate_ws(token: str) -> uuid.UUID | None:
-    try:
-        payload = decode_token(token)
-        if payload.get("type") != "access":
-            return None
-        return uuid.UUID(payload["sub"])
-    except (ValueError, KeyError):
-        return None
-
-
 @router.websocket("/ws/gateway")
-async def ws_gateway(websocket: WebSocket, token: str = Query(...)):
-    user_id = await _authenticate_ws(token)
-    if not user_id:
-        await websocket.close(code=4001, reason="Invalid token")
-        return
-
+async def ws_gateway(websocket: WebSocket):
     await websocket.accept()
     agent_id: uuid.UUID | None = None
 
@@ -70,11 +54,10 @@ async def ws_gateway(websocket: WebSocket, token: str = Query(...)):
             payload = msg.get("payload", {})
             api_key = payload.get("api_key", "")
 
-            # Find agent by verifying api_key against all manifests owned by this user
+            # Find agent by verifying the API key.
             result = await db.execute(
                 select(Agent, AgentManifest)
                 .join(AgentManifest, Agent.id == AgentManifest.agent_id)
-                .where(Agent.owner_user_id == user_id)
             )
             matched_agent = None
             for agent, manifest in result:
@@ -164,7 +147,7 @@ async def ws_gateway(websocket: WebSocket, token: str = Query(...)):
 
                 try:
                     msg = json.loads(raw)
-                    await _handle_message(agent_id, user_id, msg, websocket)
+                    await _handle_message(agent_id, msg, websocket)
                 except json.JSONDecodeError:
                     await gateway_service.send_warning(
                         agent_id, "SCHEMA_ERROR", "Invalid JSON"
@@ -182,7 +165,7 @@ async def ws_gateway(websocket: WebSocket, token: str = Query(...)):
                 await db_final.commit()
 
 
-async def _handle_message(agent_id: uuid.UUID, user_id: uuid.UUID, msg: dict, websocket: WebSocket):
+async def _handle_message(agent_id: uuid.UUID, msg: dict, websocket: WebSocket):
     msg_type = msg.get("type", "")
     payload = msg.get("payload", {})
 
